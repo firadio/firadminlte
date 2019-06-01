@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+    <meta charset="utf-8" />
+    <title>微信验证 - 飞儿云平台Firadio.net</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0" />
+    <!--<link rel="stylesheet" type="text/css" href="https://res.wx.qq.com/open/libs/weui/0.4.1/weui.css">-->
+    <link rel="stylesheet" type="text/css" href="css/weui.css" />
+    <link rel="stylesheet" type="text/css" href="css/qrconnect.css" />
+    <script src="js/jquery-3.4.0.min.js"></script>
+    <script src="js/qrcode.min.js"></script>
+    <script src="js/mqttws31.min.js"></script>
+    <script src="js/md5.min.js"></script>
+</head>
+
+<body style="height: 100%; background-color: rgb(51, 51, 51);">
+
+<script type="text/javascript">
+function getParams() {
+    var a = document.createElement('a');
+    a.href = location.href;
+    var ret = {},
+    seg = a.search.replace(/^\?/,'').split('&'),
+    len = seg.length, i = 0, s;
+    for (;i<len;i++) {
+        if (!seg[i]) { continue; }
+        s = seg[i].split('=');
+        ret[s[0]] = s[1];
+    }
+    return ret;
+}
+const str_replace = function(subtext, newtext, fulltext) {
+    // 模仿PHP写的文本替换功能
+    let i1 = 0;
+    let i2 = 0;
+    let arr = [];
+    while (true) {
+        i1 = fulltext.indexOf(subtext, i2);
+        if (i1 === -1) {
+            arr.push(fulltext.substr(i2));
+            break;
+        }
+        arr.push(fulltext.substring(i2, i1));
+        i2 = i1 + subtext.length;
+    }
+    return arr.join(newtext);
+}
+const browser = {
+    UA: function () {
+        const UA = navigator.userAgent;
+        //const AV = navigator.appVersion;
+        return {         //移动终端浏览器版本信息
+            trident: UA.indexOf('Trident') > -1, //IE内核
+            presto: UA.indexOf('Presto') > -1, //opera内核
+            webKit: UA.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+            gecko: UA.indexOf('Gecko') > -1 && UA.indexOf('KHTML') === -1, //火狐内核
+            mobile: !!UA.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+            ios: !!UA.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+            android: UA.indexOf('Android') > -1 || UA.indexOf('Linux') > -1, //android终端或uc浏览器
+            iPhone: UA.indexOf('iPhone') > -1, //是否为iPhone或者QQHD浏览器
+            iPad: UA.indexOf('iPad') > -1, //是否iPad
+            webApp: UA.indexOf('Safari') === -1, //是否web应该程序，没有头部与底部
+            MM: UA.indexOf('MicroMessenger') > -1, //在微信中打开
+        };
+    }(),
+    language: (navigator.browserLanguage || navigator.language).toLowerCase()
+}
+const currentUrl = location.protocol + '//' + location.hostname + location.pathname;
+function getWxUrl(state) {
+    const qrconnect = 'https://open.weixin.qq.com/connect/qrconnect'; // 用于给电脑网页端出现二维码
+    const authorize = 'https://open.weixin.qq.com/connect/oauth2/authorize'; // 用于手机微信端验证
+    const param = 'appid=APPID&redirect_uri=REDIRECT_URI&response_type=code&scope=SCOPE&state=STATE#wechat_redirect';
+    var url = '';
+    if (1 || browser.UA.MM) {
+        // 微信手机端
+        url = authorize + '?' + param;
+    } else {
+        url = qrconnect + '?' + param;
+    }
+    url = str_replace('APPID', 'wx2e00731902ff01ef', url); // 1:应用ID
+    // REDIRECT_URI只能跳回当前页面，因为只有这个页面认证过。
+    const redirect_uri = currentUrl + '';
+    url = str_replace('REDIRECT_URI', encodeURIComponent(redirect_uri), url); // 2:跳转URL
+    if (1 || browser.UA.MM) {
+        // 微信手机端
+        url = str_replace('SCOPE', 'snsapi_userinfo', url); // 3:用于微信手机端
+    } else {
+        url = str_replace('SCOPE', 'snsapi_login', url); // 3:用于电脑网页端
+    }
+    url = str_replace('STATE', state, url); // 4:跳转代码
+    return url;
+}
+function run1() {
+    const params = getParams();
+    if (params.hasOwnProperty('t')) {
+        // 有t参数，说明是手机扫码打开的页面
+        location.href = getWxUrl(params.t);
+        return;
+    }
+    if (params.hasOwnProperty('code') && params.hasOwnProperty('state')) {
+        // 有code和state参数，说明已经登录了
+        var url = 'http://8612.http.feieryun.cn:8612/api/wxoauth2/authorize.php';
+        url += '?code=' + params.code; // 把 code 交给后端查询可得微信资料
+        url += '&state=' + params.state; // 如果 state 包含 topic_id 就通知电脑端跳转登录
+        location.href = url;
+        return;
+    }
+    if (browser.UA.MM) {
+        // 在微信手机端打开就直接跳转authorize
+        $(".weui_msg").show();
+        location.href = getWxUrl('authorize');
+        return;
+    }
+    // 如果电脑端打开就显示二维码
+    //document.write(url);
+    var qrcode = new QRCode("qrcode");
+    var t = new Date().getTime() + Math.random().toString().substring(2);
+    var t = md5(t).substring(0, 10);
+    var url = currentUrl + '?t=' + t;
+    qrcode.makeCode(url);
+}
+</script>
+<script>
+// Create a client instance
+const hostname = 'vps.firadio.net';
+const port = 8083;
+client = new Paho.MQTT.Client(hostname, Number(port), "clientId");
+
+// set callback handlers
+client.onConnectionLost = onConnectionLost;
+client.onMessageArrived = onMessageArrived;
+
+// connect the client
+client.connect({onSuccess:onConnect});
+
+
+// called when the client connects
+function onConnect() {
+  // Once a connection has been made, make a subscription and send a message.
+  console.log("onConnect");
+  client.subscribe("testtopic/1");
+  /*
+  message = new Paho.MQTT.Message("Hello");
+  message.destinationName = "World";
+  client.send(message);
+  //*/
+}
+
+// called when the client loses its connection
+function onConnectionLost(responseObject) {
+  if (responseObject.errorCode !== 0) {
+    console.log("onConnectionLost:"+responseObject.errorMessage);
+  }
+}
+
+// called when a message arrives
+function onMessageArrived(message) {
+  console.log("onMessageArrived:"+message.payloadString);
+}
+</script>
+
+
+<div class="weui_msg" style="display:none">
+    <div class="weui_icon_area">
+        <i class="weui_icon_info weui_icon_msg"></i>
+    </div>
+    <div class="weui_text_area">
+        <h4 class="weui_msg_title">验证中, 请稍后...</h4>
+    </div>
+</div>
+
+<table width="100%" height="100%">
+    <tr align="center">
+        <td>
+            <div class="main impowerBox">
+                <div class="loginPanel normalPanel">
+                    <div class="title">微信登录</div>
+                    <div class="waiting panelContent">
+                        <div class="wrp_code"><div id="qrcode" style="background-color: #ffffff; padding: 20px; margin: 10px;"></div></div>
+                        <div class="info">
+                            <div class="status status_browser js_status normal" id="wx_default_tip">
+                                <p>请使用微信扫描二维码登录</p>
+                                <p>“飞儿云平台”</p>
+                            </div>
+                            <div class="status status_succ js_status normal" style="display:none" id="wx_after_scan">
+                                <i class="status_icon icon38_msg succ"></i>
+                                <div class="status_txt">
+                                    <h4>扫描成功</h4>
+                                    <p>请在微信中点击确认即可登录</p>
+                                </div>
+                            </div>
+                            <div class="status status_fail js_status normal" style="display:none" id="wx_after_cancel">
+                                <i class="status_icon icon38_msg warn"></i>
+                                <div class="status_txt">
+                                    <h4>您已取消此次登录</h4>
+                                    <p>您可再次扫描登录，或关闭窗口</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<script>run1();</script>
+
+</body>
+</html>

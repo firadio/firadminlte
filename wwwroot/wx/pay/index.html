@@ -1,0 +1,285 @@
+﻿<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>点数在线充值 - 飞儿云平台Firadio.net</title>
+        <link rel="stylesheet" href="index.css?222">
+        <link rel="shortcut icon" href="//wx.anan.cc/favicon.ico">
+        <script src="//wx.anan.cc/firadio/js/jquery.min.js"></script>
+        <script src="//wx.anan.cc/firadio/js/md5.min.js"></script>
+        <script src="//wx.anan.cc/firadio/js/cookie.js"></script>
+        <script src="wxpay.js?11"></script>
+        <style> 
+        @font-face {
+            font-family: marlett2;
+            src: url('marlett.ttf');
+        }
+        </style>
+    </head>
+
+    <body onload="window.wxpay_onload()">
+        <div style="position: absolute; width: 100%; height: 100%; display: none; z-index: 200000;" id="div_loading">
+            <div style="position: absolute; bottom: 0; background-color: #000000; width: 100%; height: 100%; filter:alpha(opacity:30); opacity:0.3; -moz-opacity:0.3;-khtml-opacity: 0.3">
+            </div>
+            <div class="info" style="position: absolute; bottom: 0; background-color: #ffffff; width: 100%; height: 400px; color: #000000; text-align: left; line-height: 50px; font-size: 24px; padding: 20px 0 0 50px;">
+                请稍后....
+            </div>
+        </div>
+        <div style="position: absolute; width: 100%; height: 100%; display: none; z-index: 100000;" id="div_confirm">
+            <div style="position: absolute; bottom: 0; background-color: #000000; width: 100%; height: 100%; filter:alpha(opacity:30); opacity:0.3; -moz-opacity:0.3;-khtml-opacity: 0.3">
+            </div>
+            <div class="payConfirm" style="position: absolute; bottom: 0; background-color: #ffffff; width: 100%; height: 400px; color: #000000">
+                <div style="position: static; background-color: #ffffff; width: 100%; height: 50px; text-align: center; border-bottom: solid 1px #cccccc; font-size: 20px;">
+                    <!--<div style="position: absolute; font-family: marlett, marlett2; width: 70px; line-height: 49px; text-align: center; background-color: #ffffff; cursor: pointer; z-index: 2" onclick="div_confirm_hide()">r</div>-->
+                    <div style="position: absolute; width: 70px; line-height: 55px; text-align: center; cursor: pointer; z-index: 2" onclick="div_confirm_hide()">
+                        <img height="20" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAdCAIAAADdBCBlAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFMSURBVEhLxZatbsMwEID7GH6AgT1CQ8dHBi0FDe4JprHKKtoTTEWVXDZYMmnUYSOTOpaAgsGAgoAC7/zTynXOjsFu+6Dt+862fLZnmhJr38u7WQDjsrOd5RyUmPtoh2hMM2YH5kIdTE8ZrayZDzyRtcMC6tWuKEGvFpWPCZiwA6yWrenOMKBqILDDoOVNvDZLtVCDHYHSbjgadZ6WswOpWTD+skMT9G9PeECw4rMdSCfYxDs0NGJSDYR2IJWgEk2wgE6iO2LURz/EEdmBRALGV182Qbd9uDzajrEaGNsB/JCZKvuMq8aBqgHUDiQSYGQqI2UH+vfH6QT5osvYgYkE7Pb5I1vPebvWRyWuvWsEl99+VIp/mzvhvhOeGcLznqxV/2B1r/dXvi2kpFYJ7xnCOzKtXsdqR/n9Tvo20b6rf/0nIPzP/PJfjAitfwBzhiwzfOLK8AAAAABJRU5ErkJggg==" />
+                    </div>
+                    <div style="position: absolute; line-height: 50px; width: 100%; text-align: center;">确认付款</div>
+                    <div style="position: absolute; line-height: 50px;"></div>
+                </div>
+                <div style="position: static; width: 100%; height: 80px; text-align: center; font-size: 40px; line-height: 80px;">
+                    ￥<span class="payAmount"></span>
+                </div>
+                <div style="position: static; width: 100%; height: 40px; line-height: 40px; border-bottom: solid 1px #cccccc;">
+                    <div style="position: static; line-height: 39px; float: left; padding: 0 15px 0 20px;">订单信息</div>
+                    <div style="position: static; line-height: 39px; float: left;" class="orderinfo">订单信息</div>
+                </div>
+                <div style="position: static; width: 100%; height: 40px; line-height: 40px; border-bottom: solid 1px #cccccc;">
+                    <div style="position: static; line-height: 39px; float: left; padding: 0 15px 0 20px;">预留QQ号码</div>
+                    <div style="position: static; line-height: 39px; float: left;" class="qquin">qquin</div>
+                    <span style="color: #ff0000">（请务必确认后充值）</span>
+                </div>
+                <div style="position: absolute; bottom: 0; width: 100%; height: 70px; text-align: center; padding: 0 15px 0 20px;">
+                    <button style="width: 100%; height:50px; border-radius: 10px;background-color:#50b56a; border:0px #50b56a solid; cursor: pointer;  color:white;  font-size:16px;" type="button" onclick="div_confirm_ok()" >立即支付</button>
+                </div>
+            </div>
+        </div>
+        <section class="aui-flexView">
+            <section class="aui-scrollView">
+                <div class="aui-recharge-box">
+                    <div class="aui-recharge-iphone">
+                        <div class="aui-well-bd">
+                            <p>
+                                <input type="text" name="username" id="username" placeholder="请输入远程用户名">
+                            </p>
+                            <p style="display: none;">
+                                &nbsp;预留QQ:12345678<em>（华东1机房）</em>
+                            </p>
+                        </div>
+                        <div class="aui-well-hd">
+                            <img src="images/icon-mem.png" alt="">
+                        </div>
+                    </div>
+                    <div class="aui-cell-box">
+                        <h3>充点数</h3>
+                        <div class="aui-grids">
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>0.2元</span>
+                                <span class="aui-grids-item-text">2000点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>0.4元</span>
+                                <span class="aui-grids-item-text">4000点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>0.8元</span>
+                                <span class="aui-grids-item-text">8000点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>1元</span>
+                                <span class="aui-grids-item-text">1万点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>2元</span>
+                                <span class="aui-grids-item-text">2万点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>3元</span>
+                                <span class="aui-grids-item-text">3万点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>5元</span>
+                                <span class="aui-grids-item-text">5万点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>10元</span>
+                                <span class="aui-grids-item-text">10万点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>20元</span>
+                                <span class="aui-grids-item-text">20万点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>30元</span>
+                                <span class="aui-grids-item-text">30万点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>50元</span>
+                                <span class="aui-grids-item-text">50万点数</span>
+                            </a>
+                            <a href="javascript:;" class="aui-grids-item">
+                                <span>100元</span>
+                                <span class="aui-grids-item-text">100万点数</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!--
+                <button style="width:210px; height:50px; border-radius: 15px;background-color:#50b56a; border:0px #50b56a solid; cursor: pointer;  color:white;  font-size:16px;" type="button" onclick="callpay()" >立即支付</button>
+                -->
+            </section>
+            <footer class="aui-tabBar">
+                <a href="http://chaxun.firadio.net" class="aui-tabBar-item">
+                    <span>点数查询</span>
+                </a>
+                <a href="http://yun.firadio.net" class="aui-tabBar-item">
+                    <span>飞儿云平台</span>
+                </a>
+                <a href="javascript:;" class="aui-tabBar-item">
+                    <span>联系我们</span>
+                </a>
+                <a href="javascript:;" class="aui-tabBar-item">
+                    <span>更多服务</span>
+                </a>
+            </footer>
+        </section>
+        <script type="text/javascript">
+function empty(i) {
+    if (i === undefined) {
+        return true;
+    }
+    if (i === 0) {
+        return true;
+    }
+    if (i === "") {
+        return true;
+    }
+    return false;
+};
+function getParams() {
+    var a = document.createElement('a');
+    a.href = location.href;
+    var ret = {},
+    seg = a.search.replace(/^\?/,'').split('&'),
+    len = seg.length, i = 0, s;
+    for (;i<len;i++) {
+        if (!seg[i]) { continue; }
+        s = seg[i].split('=');
+        ret[s[0]] = s[1];
+    }
+    return ret;
+}
+const requestParams = getParams();
+if (empty(requestParams.code)) {
+    // alert('请通过微信访问');
+    var redirect_uri = 'http%3A%2F%2Fwx.anan.cc';
+    redirect_uri = location.href;
+    location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx2e00731902ff01ef&redirect_uri=' + redirect_uri + '&response_type=code&scope=snsapi_userinfo&state=firadio#wechat_redirect';
+};
+            window.postData = {};
+            function mul(num1,num2){
+                var m = 0;
+                try{m+=num1.toString().split(".")[1].length}catch(e){}
+                try{m+=num2.toString().split(".")[1].length}catch(e){}
+                return (Number(num1.toString().replace(".",""))*Number(num2.toString().replace(".","")))/Math.pow(10,m)
+            }
+            function loading_show() {
+                $("#div_loading").show();
+            }
+            function loading_hide() {
+                $("#div_loading").hide();
+                $(".aui-grids-item").removeClass('this-card');
+            }
+            function form_onsubmit() {
+                loading_show();
+                // const postUrl = 'http://wx.firadio.net/pay/check.php';
+                // const postUrl = 'http://wx-firadio-net.feieryun.net:8001/pay/check.php';
+                const postUrl = 'http://wx-firadio-net.feieryun.net:18271/pay/check.php';
+                // const postUrl = 'http://8612.http.feieryun.cn:8612/pay/check.php';
+                window.postData.code = requestParams.code;
+                window.postData.domain = 'firadio.net';
+                window.postData.chargeRate = 0;
+                window.postData.chargeAmount = window.postData.depositAmount * window.postData.chargeRate;
+                window.postData.payAmount = window.postData.depositAmount + window.postData.chargeAmount;
+                $.post(postUrl, window.postData, function (result) {
+                    if (result.hasOwnProperty('message')) {
+                        alert(result.message);
+                        loading_hide();
+                        return;
+                    }
+                    if (result.hasOwnProperty('ntuser')) {
+                        div_confirm_show(result);
+                        loading_hide();
+                        return;
+                    }
+                    window.wxpay_data = result;
+                    callpay();
+                    loading_hide();
+                    div_confirm_hide();
+                }, "json").complete(function() {
+                    // loading_hide();
+                }).error(function() {
+                    loading_hide();
+                    alert("服务器连接失败，请与群主阿盛联系。");
+                });
+            }
+            $('.aui-grids-item').click(function(e){
+                $(this).addClass('this-card').siblings().removeClass('this-card');
+                $('#type-amount').html($(this).find('.cardAmount').html());
+                window.postData.username = $("[name='username']").val();
+                window.postData.depositAmount = parseFloat($(this).find('span').html());
+                window.postData.confirm = '';
+                form_onsubmit();
+            })
+            function div_confirm_show(result) {
+                $('.payConfirm').find(".payAmount").html(amountFormat(result.payAmount));
+                $('.payConfirm').find(".orderinfo").html('' + result.ntuser.username + ' 充值 ' + (result.depositAmount) + ' 万点数');
+                $('.payConfirm').find(".qquin").html('' + result.ntuser.qquin + '');
+                $('#div_confirm').show();
+            }
+            function div_confirm_hide() {
+                $('#div_confirm').hide();
+            }
+            function div_confirm_ok() {
+                window.postData.confirm = 'ok';
+                form_onsubmit();
+            }
+            function amountFormat(number) {
+                return number_format(number, 2, '.', ',');
+            }
+            function number_format(number, decimals, dec_point, thousands_sep) {
+                /*
+                * 参数说明：
+                * number：要格式化的数字
+                * decimals：保留几位小数
+                * dec_point：小数点符号
+                * thousands_sep：千分位符号
+                * */
+                number = (number + '').replace(/[^0-9+-Ee.]/g, '');
+                var n = !isFinite(+number) ? 0 : +number,
+                    prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+                    sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+                    dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+                    s = '',
+                    toFixedFix = function (n, prec) {
+                        var k = Math.pow(10, prec);
+                        return '' + Math.ceil(n * k) / k;
+                    };
+             
+                s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+                var re = /(-?\d+)(\d{3})/;
+                while (re.test(s[0])) {
+                    s[0] = s[0].replace(re, "$1" + sep + "$2");
+                }
+             
+                if ((s[1] || '').length < prec) {
+                    s[1] = s[1] || '';
+                    s[1] += new Array(prec - s[1].length + 1).join('0');
+                }
+                return s.join(dec);
+            }
+        </script>
+    </body>
+</html>
