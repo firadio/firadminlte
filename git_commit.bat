@@ -17,7 +17,7 @@ PAUSE
 git commit
 ECHO =========git push============
 PAUSE
-git push
+git push origin master
 ECHO =========EXIT============
 PAUSE
 EXIT
