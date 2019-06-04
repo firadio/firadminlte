@@ -46,41 +46,55 @@ vue.methods.submit = function () {
   <!-- Google Font -->
   <!--<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">-->
   <link rel="stylesheet" href="<?php echo $url_static;?>/css/gfonts.css">
+<style>
+    .login-box{
+        margin-top: 0;
+    }
+
+</style>
+
 </head>
 <body class="hold-transition login-page">
+<table height="100%" width="100%"><tr><td>
 <div class="login-box" id="app">
   <div class="login-logo">
-    <a href="../../index2.html"><b>飞儿云</b>管理系统</a>
+    <a href=""><b>飞儿云</b>管理系统</a>
   </div>
   <!-- /.login-logo -->
   <div class="login-box-body">
+<!--
     <p class="login-box-msg">简单&nbsp;&nbsp;&nbsp;高效&nbsp;&nbsp;&nbsp;安全&nbsp;&nbsp;&nbsp;可靠</p>
+-->
+    <p class="login-box-msg">E-mail 账号登录</p>
 
     <form action="" method="post" v-on:submit="submit">
       <div class="form-group has-feedback">
         <input
         type="email"
         class="form-control"
-        placeholder="Email邮箱"
+        placeholder="请输入Email邮箱"
         v-model="form.email"
         :disabled="disabled"
         required="required"
+        autocomplete="off"
         />
         <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
       </div>
-      <div class="form-group has-feedback">
+      <div class="form-group has-feedback" style="display: none;">
         <input
-        type="password"
+        type="text"
         class="form-control"
         placeholder="请输入登录密码"
         v-model="form.password"
         :disabled="disabled"
         required="required"
+        onfocus="this.type='password'"
+        autocomplete="off"
         />
         <span class="glyphicon glyphicon-lock form-control-feedback"></span>
       </div>
-      <div class="row">
-        <div class="col-xs-8">
+      <div class="row" style="float: right;">
+        <div class="col-xs-8" style="display: none;">
           <div class="checkbox icheck">
             <label>
               <input type="checkbox" :disabled="disabled"> 记住账号
@@ -88,8 +102,8 @@ vue.methods.submit = function () {
           </div>
         </div>
         <!-- /.col -->
-        <div class="col-xs-4">
-          <button type="submit" class="btn btn-primary btn-block btn-flat" :disabled="disabled">登录</button>
+        <div class="col-xs-12">
+          <button type="submit" class="btn btn-primary btn-block btn-flat" :disabled="disabled">下一步</button>
         </div>
         <!-- /.col -->
       </div>
@@ -112,7 +126,7 @@ vue.methods.submit = function () {
   <!-- /.login-box-body -->
 </div>
 <!-- /.login-box -->
-
+</td></tr></table>
 <!-- jQuery 3 -->
 <script src="<?php echo $AdminLTE;?>/bower_components/jquery/dist/jquery.min.js"></script>
 <!-- Bootstrap 3.3.7 -->
